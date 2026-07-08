@@ -12,6 +12,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Fix line endings
+        run: |
+          find . -type f -not -path '*/.*' -exec sed -i '' 's/\r$//' {} + || find . -type f -not -path '*/.*' -exec sed -i 's/\r$//' {} +
+
       - name: Set up Theos
         run: |
           bash -c "$(curl -fsSL https://raw.githubusercontent.com/theos/theos/master/bin/install-theos )"
