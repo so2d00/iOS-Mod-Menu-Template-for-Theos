@@ -1,0 +1,9 @@
+Package: com.yourname.nusuktweak
+Name: NusukTweak
+Depends: mobilesubstrate
+Version: 0.0.1
+Architecture: iphoneos-arm64
+Description: Custom Tweak for Nusuk App to bypass restrictions.
+Maintainer: YourName
+Author: YourName
+Section: Tweaks
