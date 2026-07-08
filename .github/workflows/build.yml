@@ -12,17 +12,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Fix line endings (CRLF to LF)
+        run: |
+          # تحويل كافة الملفات لصيغة Unix لضمان عدم حدوث أخطاء
+          find . -type f -exec sed -i '' 's/\r$//' {} + || find . -type f -exec sed -i 's/\r$//' {} +
+
       - name: Set up Theos
         run: |
           brew install ldid
           git clone --recursive https://github.com/theos/theos.git ~/theos
-          
-          # Use Git Clone for SDKs to avoid tar errors
           mkdir -p ~/theos/sdks
           git clone --depth 1 https://github.com/theos/sdks.git tmp_sdks
           mv tmp_sdks/*.sdk ~/theos/sdks/
           rm -rf tmp_sdks
-          
           echo "THEOS=~/theos" >> $GITHUB_ENV
           echo "~/theos/bin" >> $GITHUB_PATH
 
@@ -32,8 +34,10 @@ jobs:
         env:
           THEOS: ~/theos
 
-      - name: Upload Artifact
+      - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: NusukTweak-Package
-          path: packages/*.deb
+          name: NusukTweak-Files
+          path: |
+            packages/*.deb
+            .theos/obj/*.dylib
