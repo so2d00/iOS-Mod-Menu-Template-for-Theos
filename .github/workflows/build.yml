@@ -12,17 +12,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Theos
-        uses: theos/setup-theos-action@v1
-        with:
-          theos-src: https://github.com/theos/theos.git
-          theos-sdks: https://github.com/theos/sdks.git
+      - name: Set up Theos
+        run: |
+          brew install ldid
+          git clone --recursive https://github.com/theos/theos.git ~/theos
+          
+          # Use a more reliable SDK source
+          mkdir -p ~/theos/sdks
+          curl -L "https://github.com/theos/sdks/raw/master/iPhoneOS14.5.sdk.tar.xz" -o sdk.tar.xz
+          tar -xJf sdk.tar.xz -C ~/theos/sdks
+          rm sdk.tar.xz
+          
+          echo "THEOS=~/theos" >> $GITHUB_ENV
+          echo "~/theos/bin" >> $GITHUB_PATH
 
       - name: Build Tweak
         run: |
           make package FINALPACKAGE=1
         env:
-          THEOS: ${{ github.workspace }}/theos
+          THEOS: ~/theos
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
