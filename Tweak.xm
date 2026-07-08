@@ -1,34 +1,30 @@
 #import <UIKit/UIKit.h>
 
-// 1. Allow Screenshots
+// 1. Enable Screenshots
 %hook UIScreen
 - (BOOL)_isCaptured { return NO; }
 %end
 
 // 2. Hide "Outside Zone" Alerts
 %hook UIAlertController
-- (void)viewWillAppear:(BOOL)animated {
+- (void)viewDidAppear:(BOOL)animated {
     %orig;
     NSString *msg = [self.message lowercaseString];
     NSString *ttl = [self.title lowercaseString];
     
-    // If the alert mentions location or zone, dismiss it immediately
-    if ([msg containsString:@"zone"] || [msg containsString:@"location"] || 
-        [ttl containsString:@"zone"] || [ttl containsString:@"location"]) {
+    // Check if alert is related to location or zone
+    if (msg && ([msg containsString:@"zone"] || [msg containsString:@"location"])) {
+        [self dismissViewControllerAnimated:YES completion:nil];
+    } else if (ttl && ([ttl containsString:@"zone"] || [ttl containsString:@"location"])) {
         [self dismissViewControllerAnimated:YES completion:nil];
     }
 }
 %end
 
-// 3. Force "Confirm Slots" Button to be active
+// 3. Force "Confirm" Buttons to be Clickable
 %hook UIButton
-- (void)layoutSubviews {
-    %orig;
-    // Force buttons to stay enabled so you can click them
-    if (!self.enabled) {
-        [self setEnabled:YES];
-    }
-}
+- (BOOL)isEnabled { return YES; }
+- (void)setEnabled:(BOOL)enabled { %orig(YES); }
 %end
 
 // 4. Enable Instant Track
