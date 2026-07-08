@@ -12,7 +12,7 @@
     NSString *msg = [self.message lowercaseString];
     NSString *ttl = [self.title lowercaseString];
     
-    // If the alert is about the zone or location, close it immediately
+    // Check for zone or location keywords to dismiss the alert
     if (msg && ([msg containsString:@"zone"] || [msg containsString:@"location"])) {
         [self dismissViewControllerAnimated:YES completion:nil];
     } else if (ttl && ([ttl containsString:@"zone"] || [ttl containsString:@"location"])) {
@@ -25,7 +25,7 @@
 %hook UIButton
 - (void)layoutSubviews {
     %orig;
-    // We only force buttons that are currently disabled
+    // Force buttons to be enabled if they are currently disabled
     if (!self.enabled) {
         [self setEnabled:YES];
         [self setUserInteractionEnabled:YES];
