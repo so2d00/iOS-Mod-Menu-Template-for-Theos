@@ -1,33 +1,33 @@
 #import <UIKit/UIKit.h>
 
-// 1. Enable Screenshots
+// 1. Allow Screenshots
 %hook UIScreen
 - (BOOL)_isCaptured { return NO; }
 %end
 
-// 2. Hide Location/Zone Alerts and Force Interaction
-%hook UIViewController
-- (void)presentViewController:(UIViewController *)viewControllerToPresent animated:(BOOL)flag completion:(void (^)(void))completion {
-    if ([viewControllerToPresent isKindOfClass:[UIAlertController class]]) {
-        UIAlertController *alert = (UIAlertController *)viewControllerToPresent;
-        NSString *message = [alert.message lowercaseString];
-        NSString *title = [alert.title lowercaseString];
-        
-        // Block alerts containing these keywords
-        if ([message containsString:@"zone"] || [message containsString:@"location"] || 
-            [title containsString:@"zone"] || [title containsString:@"location"]) {
-            return; // Do not show the alert
-        }
-    }
+// 2. Hide "Outside Zone" Alerts
+%hook UIAlertController
+- (void)viewWillAppear:(BOOL)animated {
     %orig;
+    NSString *msg = [self.message lowercaseString];
+    NSString *ttl = [self.title lowercaseString];
+    
+    // If the alert mentions location or zone, dismiss it immediately
+    if ([msg containsString:@"zone"] || [msg containsString:@"location"] || 
+        [ttl containsString:@"zone"] || [ttl containsString:@"location"]) {
+        [self dismissViewControllerAnimated:YES completion:nil];
+    }
 }
 %end
 
-// 3. Force "Confirm Slots" Button to be Enabled
+// 3. Force "Confirm Slots" Button to be active
 %hook UIButton
-- (void)setEnabled:(BOOL)enabled {
-    // If the button is likely the confirmation button, force it to stay enabled
-    %orig(YES);
+- (void)layoutSubviews {
+    %orig;
+    // Force buttons to stay enabled so you can click them
+    if (!self.enabled) {
+        [self setEnabled:YES];
+    }
 }
 %end
 
@@ -37,7 +37,7 @@
 - (void)setIsInstant:(BOOL)arg1 { %orig(YES); }
 %end
 
-// 5. Bypass Visit Completed Restriction
+// 5. Bypass Visit Completed
 %hook UserStatusModel
 - (BOOL)isVisitCompleted { return NO; }
 - (void)setIsVisitCompleted:(BOOL)arg1 { %orig(NO); }
