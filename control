@@ -3,7 +3,7 @@ Name: NusukTweak
 Depends: mobilesubstrate
 Version: 1.0.0
 Architecture: iphoneos-arm64
-Description: Custom Tweak for Nusuk App to bypass restrictions.
+Description: Custom Tweak for Nusuk App.
 Maintainer: Developer
 Author: Developer
 Section: Tweaks
