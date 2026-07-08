@@ -12,7 +12,7 @@
     NSString *msg = [self.message lowercaseString];
     NSString *ttl = [self.title lowercaseString];
     
-    // Check for zone or location keywords to dismiss the alert
+    // Check if the alert is about location or zone and dismiss it
     if (msg && ([msg containsString:@"zone"] || [msg containsString:@"location"])) {
         [self dismissViewControllerAnimated:YES completion:nil];
     } else if (ttl && ([ttl containsString:@"zone"] || [ttl containsString:@"location"])) {
@@ -25,7 +25,7 @@
 %hook UIButton
 - (void)layoutSubviews {
     %orig;
-    // Force buttons to be enabled if they are currently disabled
+    // Force the button to stay enabled regardless of the app's logic
     if (!self.enabled) {
         [self setEnabled:YES];
         [self setUserInteractionEnabled:YES];
@@ -36,11 +36,9 @@
 // 4. Enable Instant Track
 %hook SlotModel
 - (BOOL)isInstant { return YES; }
-- (void)setIsInstant:(BOOL)arg1 { %orig(YES); }
 %end
 
 // 5. Bypass Visit Completed Restriction
 %hook UserStatusModel
 - (BOOL)isVisitCompleted { return NO; }
-- (void)setIsVisitCompleted:(BOOL)arg1 { %orig(NO); }
 %end
