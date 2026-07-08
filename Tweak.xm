@@ -1,62 +1,44 @@
-#import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
-#import <CoreLocation/CoreLocation.h>
 
-// 1. Enable Instant Track and Bypass Eligibility
-%hook RawdahViewModel
-- (BOOL)isInstantTrackAllowed {
-    return YES;
-}
-- (BOOL)isInstantEligible {
-    return YES;
-}
-%end
-
-// 2. Bypass "Visit Completed" Popup/Status
-%hook RawdahBookingStatus
-- (BOOL)isVisitCompleted {
-    return NO;
-}
-%end
-
-// 3. Enable Confirm Slot / Confirm Visit Button
-%hook RawdahTicketViewModel
-- (BOOL)canConfirmVisit {
-    return YES;
-}
-%end
-
-// 4. Disable Screenshot Protection (Allow Screenshots)
+// 1. Enable Screenshots
 %hook UIScreen
-- (BOOL)isCaptured {
-    return NO;
+- (BOOL)_isCaptured { return NO; }
+%end
+
+// 2. Hide Location/Zone Alerts and Force Interaction
+%hook UIViewController
+- (void)presentViewController:(UIViewController *)viewControllerToPresent animated:(BOOL)flag completion:(void (^)(void))completion {
+    if ([viewControllerToPresent isKindOfClass:[UIAlertController class]]) {
+        UIAlertController *alert = (UIAlertController *)viewControllerToPresent;
+        NSString *message = [alert.message lowercaseString];
+        NSString *title = [alert.title lowercaseString];
+        
+        // Block alerts containing these keywords
+        if ([message containsString:@"zone"] || [message containsString:@"location"] || 
+            [title containsString:@"zone"] || [title containsString:@"location"]) {
+            return; // Do not show the alert
+        }
+    }
+    %orig;
 }
 %end
 
-%hook UITextField
-- (void)setSecureTextEntry:(BOOL)secure {
-    %orig(NO);
+// 3. Force "Confirm Slots" Button to be Enabled
+%hook UIButton
+- (void)setEnabled:(BOOL)enabled {
+    // If the button is likely the confirmation button, force it to stay enabled
+    %orig(YES);
 }
 %end
 
-// 5. Bypass Location/Madinah Zone Restriction (Spoofing Location to Al-Masjid An-Nabawi)
-%hook CLLocationManager
-- (CLLocation *)location {
-    CLLocationCoordinate2D madinahCoordinate = CLLocationCoordinate2DMake(24.4672, 39.6112);
-    CLLocation *fakeLocation = [[CLLocation alloc] initWithCoordinate:madinahCoordinate
-                                                             altitude:0
-                                                   horizontalAccuracy:5
-                                                     verticalAccuracy:5
-                                                            timestamp:[NSDate date]];
-    return fakeLocation;
-}
+// 4. Enable Instant Track
+%hook SlotModel
+- (BOOL)isInstant { return YES; }
+- (void)setIsInstant:(BOOL)arg1 { %orig(YES); }
 %end
 
-%hook RawdahLocationValidator
-- (BOOL)isUserInsideMadinahZone {
-    return YES;
-}
-- (BOOL)isUserInsideMasjidZone {
-    return YES;
-}
+// 5. Bypass Visit Completed Restriction
+%hook UserStatusModel
+- (BOOL)isVisitCompleted { return NO; }
+- (void)setIsVisitCompleted:(BOOL)arg1 { %orig(NO); }
 %end
