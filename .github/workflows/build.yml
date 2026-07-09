@@ -12,10 +12,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Fix line endings (CRLF to LF)
+      - name: Fix line endings
         run: |
-          # تحويل كافة الملفات لصيغة Unix لضمان عدم حدوث أخطاء
-          find . -type f -exec sed -i '' 's/\r$//' {} + || find . -type f -exec sed -i 's/\r$//' {} +
+          # استخدام perl بدلاً من sed لتجنب أخطاء الترميز ولضمان تحويل الملفات لصيغة Unix
+          find . -type f \( -name "Makefile" -o -name "control" -o -name "*.xm" -o -name "*.plist" \) -exec perl -pi -e 's/\r//g' {} +
 
       - name: Set up Theos
         run: |
